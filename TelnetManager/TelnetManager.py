@@ -1,6 +1,7 @@
 
 import telnetlib
-
+import sys
+import time
 HOST = "192.168.2.254"
 user = 'root'
 password = ''
@@ -12,9 +13,15 @@ tn.write(user.encode('ascii') + b"\n")
 if password:
     tn.read_until(b"Password: ")
     tn.write(password.encode('ascii') + b"\n")
-
-tn.write(b"wl -i wl1 rate\n")
-tn.write(b"wl -i wl1 nrate\n")
+i=0
+tn.write(b"wl -i wl1 -h\r\n")
+while i<10:
+    tn.write(b"wl -i wl1 phy_rssi_ant\r\n")
+    tn.write(b"wl -i wl1 nrate\r\n")
+    tn.write(b"wl -i wl1 rate\r\n")
+    time.sleep(0.1)
+    i+=1
+    
 tn.write(b"exit\n")
 
 print(tn.read_all().decode('ascii'))
