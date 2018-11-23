@@ -185,5 +185,3 @@ ant0=samet[0]
 ant1=samet[1]
 ant2=samet[2]
 print(ant0)
-print(ant1)
-print(ant2)
