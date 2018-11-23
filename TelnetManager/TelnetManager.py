@@ -7,16 +7,11 @@ import re
 
 
 
-commandArray=[]
+antenna_power_0=""
+antenna_power_1=""
+antenna_power_2=""
 
-"""    tn.write(b"iwconfig\r\n")
-    tn.write(b"env_test getenv 1:pa5ga0\r\n")
-    tn.write(b"env_test getenv 1:pa5ga1\r\n")
-    tn.write(b"env_test getenv 1:pa5ga2\r\n")"""
 
-def addWlCommand(wlString):
-    commandArray.append(wlString)
-    
 def telnetGetWlData(key,count):
     HOST = "192.168.2.254"
     user = 'root'
@@ -44,6 +39,9 @@ def telnetGetWlData(key,count):
         if key.decode("utf-8")[:-1] in temp:
             my_list.append(data[i])
     return my_list
+
+def s16(value):
+    return -(value & 0x8000) | (value & 0x7fff)
 
 def telnetAllTssiWlDataBCM4360(count):
     HOST = "192.168.2.254"
@@ -123,35 +121,69 @@ def telnetAllTssiWlDataBCM4360(count):
     adjtssi_0=[]
     adjtssi_1=[]
     adjtssi_2=[]
+    ant0=[]
+    ant1=[]
+    ant2=[]
     i = 0
     while i < len(tssi_0):
         adjtssi_0.append((int(idletssi_0[i])-int(tssi_0[i])+1023)/8 )
         adjtssi_1.append((int(idletssi_1[i])-int(tssi_1[i])+1023)/8 )
         adjtssi_2.append((int(idletssi_2[i])-int(tssi_2[i])+1023)/8 )
         i += 1 
-    print(tssi_0)
-    print(idletssi_0)
-    print(adjtssi_0)  
-    if 36 <= int(channel) <= 44:   
-        print(pa5ga0[0:3])
-        print(pa5ga1[0:3])
-        print(pa5ga2[0:3])
+
+    if 36 <= int(channel) <= 44:
+        a1=float(s16(int(pa5ga0[0],16)))/2**15
+        b0=float(s16(int(pa5ga0[1],16)))/2**8
+        b1=float(s16(int(pa5ga0[2],16)))/2**12
+        i = 0
+        while i < len(adjtssi_0): 
+            ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+            ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+            ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+            i=i+1
+
     elif 48 <= int(channel) <= 64:   
-        print(pa5ga0[3:6])
-        print(pa5ga1[3:6])
-        print(pa5ga2[3:6])
+        a1=float(s16(int(pa5ga0[3],16)))/2**15
+        b0=float(s16(int(pa5ga0[4],16)))/2**8
+        b1=float(s16(int(pa5ga0[5],16)))/2**12
+        i = 0
+        while i < len(adjtssi_0): 
+            ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+            ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+            ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+            i=i+1
+
     elif 96 <= int(channel) <= 140:   
-        print(pa5ga0[6:9])
-        print(pa5ga1[6:9])
-        print(pa5ga2[6:9])
+        a1=float(s16(int(pa5ga0[6],16)))/2**15
+        b0=float(s16(int(pa5ga0[7],16)))/2**8
+        b1=float(s16(int(pa5ga0[8],16)))/2**12
+        i = 0
+        while i < len(adjtssi_0): 
+            ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+            ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+            ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+            i=i+1
+
     elif 142 <= int(channel) <= 165:   
-        print(pa5ga0[9:12])
-        print(pa5ga1[9:12])
-        print(pa5ga2[9:12])
-    samet.append(tssi_0)
-    samet.append(tssi_1)
-    samet.append(tssi_2)
-    return samet
+        a1=float(s16(int(pa5ga0[9],16)))/2**15
+        b0=float(s16(int(pa5ga0[10],16)))/2**8
+        b1=float(s16(int(pa5ga0[11],16)))/2**12
+        i = 0
+        while i < len(adjtssi_0): 
+            ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+            ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+            ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+            i=i+1
+    antenna=[]
+    antenna.append(ant0)
+    antenna.append(ant1)
+    antenna.append(ant2)
+    return antenna
 
-print(telnetAllTssiWlDataBCM4360(10))
-
+samet=telnetAllTssiWlDataBCM4360(10)
+ant0=samet[0]
+ant1=samet[1]
+ant2=samet[2]
+print(ant0)
+print(ant1)
+print(ant2)
