@@ -4,7 +4,7 @@ import sys,os
 import time
 import re 
 
-
+from statistics import mean , stdev
 
 
 
@@ -18,6 +18,89 @@ class WlUtility:
         self.host = host
         self.user = user
         self.password = password
+
+    def transmitPowerBCM4360(self, channel, bw, chain, power_level, mean_count):
+        
+        powerLevelCmd = ("wl -i wl1 txpwr1 -q -o " + str(power_level*4) + "\n").encode()
+        chbw_cmd = ("wl -i wl1 chanspec " + str(channel) +"/" + str(bw) +"\n").encode()
+        tn = telnetlib.Telnet(self.host)
+        tn.read_until(b"login: ")
+        tn.write(self.user.encode('ascii') + b"\n")
+        if self.password:
+            tn.read_until(b"Password: ")
+            tn.write(self.password.encode('ascii') + b"\n")
+        #print("--> START Tx for " +str(channel)+"/"+str(bw) + " - Chain: " +str(chain) + " - Powerlevel: " + str(power_level))
+        tn.write(b"wl -i wl1 mpc 0\n")
+        tn.write(b"wl -i wl1 legacylink 1\n")
+        tn.write(b"wl -i wl1 ssid \"\"\n")
+        tn.write(b"wl -i wl1 down\n")
+        tn.write(b"wl -i wl1 country ALL\n")
+        tn.write(b"wl -i wl1 wsec 0\n")
+        tn.write(b"wl -i wl1 stbc_rx 1\n")
+        tn.write(b"wl -i wl1 scansuppress 1\n")
+        tn.write(b"wl -i wl1 down\n")
+        tn.write(b"wl -i wl1 band auto\n")
+        tn.write(b"wl -i wl1 txbf 0\n")
+        tn.write(b"wl -i wl1 spect 0\n")
+        tn.write(b"wl -i wl1 ibss_gmode -1\n")
+        tn.write(b"wl -i wl1 bw_cap 5g 255\n")
+        tn.write(b"wl -i wl1 bw_cap 2g 3\n")
+        tn.write(b"wl -i wl1 down\n")
+        tn.write(b"wl -i wl1 mbss 0\n")
+        tn.write(b"wl -i wl1 frameburst 0\n")
+        tn.write(b"wl -i wl1 ampdu 0\n")
+        tn.write(b"wl -i wl1 gmode auto\n")
+        tn.write(b"wl -i wl1 up\n")
+        tn.write(b"wl -i wl1 PM 0\n")
+        tn.write(b"wl -i wl1 stbc_tx 0\n")
+        tn.write(b"wl -i wl1 down\n")
+        tn.write(b"wl -i wl1 bi 65535\n")
+        tn.write(b"wl -i wl1 mimo_txbw -1\n")
+        tn.write(b"wl -i wl1 2g_rate auto\n")
+        tn.write(b"wl -i wl1 5g_rate auto\n")
+        tn.write(b"wl -i wl1 ampdu 1\n")
+        tn.write(b"wl -i wl1 frameburst 1\n")
+        tn.write(b"wl -i wl1 txchain 7\n")
+        tn.write(b"wl -i wl1 rxchain 7\n")
+        tn.write(b"wl -i wl1 spatial_policy 1\n")
+        if chain == 0:
+            tn.write(b"wl -i wl1 txcore -s 1 -c 1\n")
+        elif chain == 1: 
+            tn.write(b"wl -i wl1 txcore -s 1 -c 2\n")
+        elif chain == 2: 
+            tn.write(b"wl -i wl1 txcore -s 1 -c 4\n")
+        tn.write(b"wl -i wl1 phy_watchdog 0\n")
+        tn.write(b"wl -i wl1 band a\n")
+        tn.write(b"wl -i wl1 vht_features 3\n")
+        tn.write(chbw_cmd)
+        tn.write(b"wl -i wl1 up\n")
+        tn.write(b"wl -i wl1 phy_forcecal 1\n")
+        tn.write(("wl -i wl1 5g_rate -v 0 -s 1 --ldpc -b " + str(bw) +"\n").encode())
+        tn.write(b"wl -i wl1 phy_txpwrctrl 1\n")
+        tn.write(b"wl -i wl1 pkteng_stop rx\n")
+        tn.write(b"wl -i wl1 pkteng_stop tx\n")
+        tn.write(powerLevelCmd)
+        tn.write(b"wl -i wl1 phy_forcecal 1\n")
+        tn.write(b"wl -i wl1 pkteng_stop rx\n")
+        tn.write(b"wl -i wl1 pkteng_stop tx\n")
+        tn.write(b"wl -i wl1 interference_override 0\n")
+        tn.write(b"wl -i wl1 pkteng_start 00:11:22:33:44:55 tx 30 1500 0 88:41:FC:C3:49:0B\n")
+        time.sleep(0.5)
+        try:
+            samet=self.telnetAllTssiWlDataBCM4360(mean_count,channel,chain)
+        except ValueError:
+            return
+        
+        mean_val = mean(samet)
+        std_val = stdev(samet)
+        print("CH" +str(channel)+"/"+str(bw) + " - Chain: " +str(chain) + " - Powerlevel: " + str(power_level) + " Mean: " + str(mean_val) + " STD: " + str(std_val))
+
+
+        #        print("--> STOP Tx for " +str(channel)+"/"+str(bw) + " - Chain: " +str(chain) + " - Powerlevel: " + str(power_level))
+        time.sleep(1)
+        tn.write(b"wl -i wl1 pkteng_stop tx\n")       
+        time.sleep(1)
+        tn.write(b"exit\n")
         
     def telnetGetWlData(self,key,count,sleep_time):
         
@@ -48,7 +131,7 @@ class WlUtility:
     def s16(self,value):
         return -(value & 0x8000) | (value & 0x7fff)
     
-    def telnetAllTssiWlDataBCM4360(self,count):
+    def telnetAllTssiWlDataBCM4360(self,count,channel,chain):
 
         phy_test_tssi_0 = b"wl -i wl1 phy_test_tssi 0\n"
         phy_test_tssi_1 = b"wl -i wl1 phy_test_tssi 1\n"
@@ -94,7 +177,7 @@ class WlUtility:
         pa5ga1 = ""
         pa5ga2 = ""
         samet =[]
-        channel=""
+        #channel=""
         for temp in data:
             i=i+1
             if phy_test_tssi_0.decode("utf-8")[:-1] in temp:
@@ -115,11 +198,12 @@ class WlUtility:
                 pa5ga1=data[i].split(',')
             elif getenv2.decode("utf-8")[:-1] in temp:
                 pa5ga2=data[i].split(',')
-            elif "Channel:" in temp:
-                tmp = temp.split(' ')
-                for ch in tmp:
-                    if "Channel:" in ch:
-                        channel=ch.split(":")[1]
+            #------------------------------------------ elif "Channel:" in temp:
+                #----------------------------------------- tmp = temp.split(' ')
+                #------------------------------------------------ for ch in tmp:
+                    #-------------------------------------- if "Channel:" in ch:
+                        #------------------------------ channel=ch.split(":")[1]
+            
         
         adjtssi_0=[]
         adjtssi_1=[]
@@ -139,60 +223,179 @@ class WlUtility:
                 adjtssi_0.append(y0)
                 adjtssi_1.append(y1)
                 adjtssi_2.append(y2)
-            except ValueError:
-                print("error on line",i)
+            except IndexError:
+                y0 = 'null'
+                y1 = 'null'
+                y2 = 'null'
             time.sleep(0.01)
             i += 1 
-    
-        if 36 <= int(channel) <= 44:
-            a1=float(self.s16(int(pa5ga0[0],16)))/2**15
-            b0=float(self.s16(int(pa5ga0[1],16)))/2**8
-            b1=float(self.s16(int(pa5ga0[2],16)))/2**12
-            i = 0
-            while i < len(adjtssi_0): 
-                ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
-                ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
-                ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
-                i=i+1
-    
-        elif 48 <= int(channel) <= 64:   
-            a1=float(self.s16(int(pa5ga0[3],16)))/2**15
-            b0=float(self.s16(int(pa5ga0[4],16)))/2**8
-            b1=float(self.s16(int(pa5ga0[5],16)))/2**12
-            i = 0
-            while i < len(adjtssi_0): 
-                ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
-                ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
-                ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
-                i=i+1
-    
-        elif 96 <= int(channel) <= 140:   
-            a1=float(self.s16(int(pa5ga0[6],16)))/2**15
-            b0=float(self.s16(int(pa5ga0[7],16)))/2**8
-            b1=float(self.s16(int(pa5ga0[8],16)))/2**12
-            i = 0
-            while i < len(adjtssi_0): 
-                ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
-                ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
-                ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
-                i=i+1
-    
-        elif 142 <= int(channel) <= 165:   
-            a1=float(self.s16(int(pa5ga0[9],16)))/2**15
-            b0=float(self.s16(int(pa5ga0[10],16)))/2**8
-            b1=float(self.s16(int(pa5ga0[11],16)))/2**12
-            i = 0
-            while i < len(adjtssi_0): 
-                ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
-                ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
-                ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
-                i=i+1
+        if chain == 0:
+            if 36 <= channel<= 44:
+                a1=float(self.s16(int(pa5ga0[0],16)))/2**15
+                b0=float(self.s16(int(pa5ga0[1],16)))/2**8
+                b1=float(self.s16(int(pa5ga0[2],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 48 <= channel<= 64:   
+                a1=float(self.s16(int(pa5ga0[3],16)))/2**15
+                b0=float(self.s16(int(pa5ga0[4],16)))/2**8
+                b1=float(self.s16(int(pa5ga0[5],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 96 <= channel<= 140:   
+                a1=float(self.s16(int(pa5ga0[6],16)))/2**15
+                b0=float(self.s16(int(pa5ga0[7],16)))/2**8
+                b1=float(self.s16(int(pa5ga0[8],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 142 <= channel<= 165:   
+                a1=float(self.s16(int(pa5ga0[9],16)))/2**15
+                b0=float(self.s16(int(pa5ga0[10],16)))/2**8
+                b1=float(self.s16(int(pa5ga0[11],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        elif chain == 1:
+            if 36 <= channel<= 44:
+                a1=float(self.s16(int(pa5ga1[0],16)))/2**15
+                b0=float(self.s16(int(pa5ga1[1],16)))/2**8
+                b1=float(self.s16(int(pa5ga1[2],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 48 <= channel<= 64:   
+                a1=float(self.s16(int(pa5ga1[3],16)))/2**15
+                b0=float(self.s16(int(pa5ga1[4],16)))/2**8
+                b1=float(self.s16(int(pa5ga1[5],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 96 <= channel<= 140:   
+                a1=float(self.s16(int(pa5ga1[6],16)))/2**15
+                b0=float(self.s16(int(pa5ga1[7],16)))/2**8
+                b1=float(self.s16(int(pa5ga1[8],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 142 <= channel<= 165:   
+                a1=float(self.s16(int(pa5ga1[9],16)))/2**15
+                b0=float(self.s16(int(pa5ga1[10],16)))/2**8
+                b1=float(self.s16(int(pa5ga1[11],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        elif chain == 2:
+            if 36 <= channel<= 44:
+                a1=float(self.s16(int(pa5ga2[0],16)))/2**15
+                b0=float(self.s16(int(pa5ga2[1],16)))/2**8
+                b1=float(self.s16(int(pa5ga2[2],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 48 <= channel<= 64:   
+                a1=float(self.s16(int(pa5ga2[3],16)))/2**15
+                b0=float(self.s16(int(pa5ga2[4],16)))/2**8
+                b1=float(self.s16(int(pa5ga2[5],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 96 <= channel<= 140:   
+                a1=float(self.s16(int(pa5ga2[6],16)))/2**15
+                b0=float(self.s16(int(pa5ga2[7],16)))/2**8
+                b1=float(self.s16(int(pa5ga2[8],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
+        
+            elif 142 <= channel<= 165:   
+                a1=float(self.s16(int(pa5ga2[9],16)))/2**15
+                b0=float(self.s16(int(pa5ga2[10],16)))/2**8
+                b1=float(self.s16(int(pa5ga2[11],16)))/2**12
+                i = 0
+                while i < len(adjtssi_0): 
+                    ant0.append((b0+(b1*adjtssi_0[i]))/(1+(a1*adjtssi_0[i])))
+                    ant1.append((b0+b1*adjtssi_1[i])/(1+a1*adjtssi_1[i]))
+                    ant2.append((b0+b1*adjtssi_2[i])/(1+a1*adjtssi_2[i]))
+                    i=i+1
         antenna=[]
+        """
+        if chain ==0:
+            print("Ant0-Channel"+str(channel)+":")
+            print(ant0)
+        elif chain ==1:
+            print("Ant1-Channel"+str(channel)+":")
+            print(ant1)
+        elif chain ==2:
+            print("Ant2-Channel"+str(channel)+":")
+            print(ant2)
+        """
         antenna.append(ant0)
         antenna.append(ant1)
         antenna.append(ant2)
-        return antenna
+        return antenna[chain]
 
 samet = WlUtility("192.168.2.254","root","")
-print(samet.telnetGetWlData(b"wl -i wl1 phy_rssi_ant\n", 5, 0.1))
-print(samet.telnetAllTssiWlDataBCM4360(1000)[0])
+channelList = [36,52,100,132,149]
+chainList = [0,1,2]
+bwList=[20]
+power=[20]
+i=1
+print("**************15dBm START*******************")
+
+for ch in channelList:
+    for ant in chainList:
+        for bw in bwList:
+            print("===========TEST " +str(i)+" CH:" + str(ch) + "/" + str(bw) + " Ant:" + str(ant) + "==============")
+            rt=0
+            for pw in power:
+                while rt < 30:
+                    samet.transmitPowerBCM4360(ch, bw,ant,pw,100)
+                    rt = rt +1
+            i=i+1
+
+
+#CH36/20, Chain-0, TxPow=20.5, MeanCount=100
