@@ -382,7 +382,7 @@ samet = WlUtility("192.168.2.254","root","")
 channelList = [36,52,100,132,149]
 chainList = [0,1,2]
 bwList=[20]
-power=[20]
+power=[20.5]
 i=1
 print("**************15dBm START*******************")
 
