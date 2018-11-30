@@ -10,6 +10,7 @@ import re
 
 from statistics import mean , stdev
 import os,sys
+from pip._vendor.html5lib._ihatexml import ideographic
  
 path = '.'
  
@@ -41,11 +42,18 @@ fileStr = file.read()
 totalFile = fileStr.splitlines()[15:]
 
 phi=[]
+output = []
+angle=[]
+frequency = ""
+mainOut=[]
+theta=[]
+response=[]
 for line in totalFile:
     
+
     step = line.split(',')
-    theta=[]
-    response=[]
+
+    
     samet=0
     if step[2] == "Theta Angle  (?":
         ind=3
@@ -54,226 +62,223 @@ for line in totalFile:
                 break
             theta.append(step[ind])
             ind+=1
-        print(theta)
+        #print(theta)
     elif step[2] == '0':
         phi.append('0')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('0,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '15':
         phi.append('15')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('15,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '30':
         phi.append('30')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('30,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '45':
         phi.append('45')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('45,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '60':
         phi.append('60')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('60,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '75':
         phi.append('75')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('75,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '90':
         phi.append('90')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('90,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '105':
         phi.append('105')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('105,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '120':
         phi.append('120')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('120,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '135':
         phi.append('135')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('135,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '150':
         phi.append('150')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('150,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '165':
         phi.append('165')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('165,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '180':
         phi.append('180')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('180,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '195':
         phi.append('195')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('195,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '210':
         phi.append('210')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('210,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '225':
         phi.append('225')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('225,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '240':
         phi.append('240')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('240,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '255':
         phi.append('255')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('255,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '270':
         phi.append('270')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('270,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '285':
         phi.append('285')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('285,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '300':
         phi.append('300')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('300,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '315':
         phi.append('315')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('315,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
+        #print(response) 
     elif step[2] == '330':
         phi.append('330')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('330,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response)
+        #print(response)
     elif step[2] == '345':
-        phi.append('345')
         ind=3
         while ind < len(step):
             if step[ind] =='':
                 break
-            response.append(step[ind])
+            print('345,'+theta[ind-3]+',' +step[ind])
             ind+=1
-        print(response) 
-    if len(phi) ==24:
-        print(phi)
-        phi=[]
+        #print(response) 
+
     k = 0
     """while k < len(step):
         if step[k]=="Theta Angle  (?":
@@ -281,4 +286,3 @@ for line in totalFile:
         
         k+=1"""
     #print(step)
-    
