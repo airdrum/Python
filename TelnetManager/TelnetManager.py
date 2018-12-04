@@ -3,6 +3,7 @@ import telnetlib
 import sys,os
 import time
 import re 
+import datetime
 
 from statistics import mean , stdev
 
@@ -86,10 +87,13 @@ class WlUtility:
         tn.write(b"wl -i wl1 interference_override 0\n")
         tn.write(b"wl -i wl1 pkteng_start 00:11:22:33:44:55 tx 30 1500 0 88:41:FC:C3:49:0B\n")
         time.sleep(0.5)
-        try:
-            samet=self.telnetAllTssiWlDataBCM4360(mean_count,channel,chain)
-        except ValueError:
-            return
+        while True:
+            try:
+                samet=self.telnetAllTssiWlDataBCM4360(mean_count,channel,chain)
+            except ValueError:
+                continue
+            break
+        
         
         mean_val = mean(samet)
         std_val = stdev(samet)
@@ -377,25 +381,38 @@ class WlUtility:
         antenna.append(ant1)
         antenna.append(ant2)
         return antenna[chain]
-
+    def telnetReboot(self):
+        
+        tn = telnetlib.Telnet(self.host)
+        tn.read_until(b"login: ")
+        tn.write(self.user.encode('ascii') + b"\n")
+        if self.password:
+            tn.read_until(b"Password: ")
+            tn.write(self.password.encode('ascii') + b"\n")
+        i=0
+        tn.write(b"reboot\n")
+        time.sleep(120)
+        
 samet = WlUtility("192.168.2.254","root","")
 channelList = [36,52,100,132,149]
 chainList = [0,1,2]
 bwList=[20]
 power=[20.5]
 i=1
-print("**************15dBm START*******************")
-
-for ch in channelList:
-    for ant in chainList:
-        for bw in bwList:
-            print("===========TEST " +str(i)+" CH:" + str(ch) + "/" + str(bw) + " Ant:" + str(ant) + "==============")
-            rt=0
-            for pw in power:
-                while rt < 30:
-                    samet.transmitPowerBCM4360(ch, bw,ant,pw,100)
-                    rt = rt +1
-            i=i+1
-
-
+rbt=0
+while True:
+    print("==Reboot:" + str(rbt) + " at " + str(datetime.datetime.now()))
+    for ch in channelList:
+        for ant in chainList:
+            for bw in bwList:
+                #print("===========TEST " +str(i)+" CH:" + str(ch) + "/" + str(bw) + " Ant:" + str(ant) + "==============")
+                rt=0
+                for pw in power:
+                    while rt < 1:
+                        samet.transmitPowerBCM4360(ch, bw,ant,pw,50)
+                        rt = rt +1
+                i=i+1
+    rbt+=1
+    samet.telnetReboot()
+print("Overall test is finished at " + str(datetime.datetime.now()))
 #CH36/20, Chain-0, TxPow=20.5, MeanCount=100

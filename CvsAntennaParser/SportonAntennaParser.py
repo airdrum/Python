@@ -12,8 +12,7 @@ from statistics import mean , stdev
 import os,sys
 from pip._vendor.html5lib._ihatexml import ideographic
  
-path = '.'
- 
+path = '.' 
 
     
 class SportonAntennaParser:
