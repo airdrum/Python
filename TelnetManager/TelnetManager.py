@@ -117,21 +117,22 @@ class WlUtility:
         i=0
     
         while i<count:
-            tn.write(key)
+            tn.write((key + "\n").encode())
             time.sleep(sleep_time)
             i+=1
         tn.write(b"exit\n")
         output = tn.read_all().decode('ascii')
         #print(output)
         data = output.split('\r')
+        
         i=0
+               
         my_list = []
+        i=0
         for temp in data:
             i=i+1
-            if key.decode("utf-8")[:-1] in temp:
-                my_list.append(data[i])
+            print(temp)
         return my_list
-    
     def s16(self,value):
         return -(value & 0x8000) | (value & 0x7fff)
     
@@ -392,7 +393,7 @@ class WlUtility:
         i=0
         tn.write(b"reboot\n")
         time.sleep(120)
-        
+"""       
 samet = WlUtility("192.168.2.254","root","")
 channelList = [36,52,100,132,149]
 chainList = [0,1,2]
@@ -416,3 +417,4 @@ while True:
     samet.telnetReboot()
 print("Overall test is finished at " + str(datetime.datetime.now()))
 #CH36/20, Chain-0, TxPow=20.5, MeanCount=100
+"""
