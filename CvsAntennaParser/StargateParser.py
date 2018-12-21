@@ -269,12 +269,14 @@ class StargateParser:
             innerlen+=1
             #print("%.2f" % round(a,2))
 
-fileName="E:\Simulation_ant\Farfield"
+fileName="E:\Simulation_ant\\4920housing"
 parser = StargateParser(fileName)
-parser.parseSimulation(parser,0)
+
+
+"""parser.parseSimulation(parser,0)
 parser.parseSimulation(parser,1)
 parser.parseSimulation(parser,2)
-parser.closeExcel()
+parser.closeExcel()"""
 #parser.createCombinedAverage(parser)
 """parser.filepath ="E:\\4921\\4921_A1X"
 parser.createCombinedAverage(parser)
