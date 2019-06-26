@@ -12,7 +12,7 @@ class StargateParser:
         # Initializer / Instance Attributes
     def __init__(self,filepath):
         self.filepath = filepath
-        self.workbook = xlsxwriter.Workbook("Air4921_simulation.xlsx")
+        self.workbook = xlsxwriter.Workbook("Air4920_new_MVG_oversampled.xlsx")
     def listFiles(self):
         fileArray = []
         if len(sys.argv) == 2:
@@ -103,7 +103,8 @@ class StargateParser:
         while innerlen <len(finalarray[0]):
             arraylen = 0#len(finalarray)
             while arraylen < len(finalarray):
-                worksheet.write(innerlen,arraylen,float(finalarray[arraylen][innerlen]))
+                #worksheet.write(innerlen,arraylen,float(finalarray[arraylen][innerlen]))
+                worksheet.write(innerlen,arraylen,round(float(finalarray[arraylen][innerlen]),2))
                 arraylen+=1   
             innerlen+=1
             
@@ -269,29 +270,20 @@ class StargateParser:
             innerlen+=1
             #print("%.2f" % round(a,2))
 
-fileName="E:\Simulation_ant\\4920housing"
+fileName="E:\\x\\4920_A0X"
 parser = StargateParser(fileName)
-
+parser.createCombinedExcel(parser)
+parser.filepath ="E:\\x\\4920_A1X"
+parser.createCombinedExcel(parser)
+parser.filepath ="E:\\x\\4920_A2X"
+parser.createCombinedExcel(parser)
 
 """parser.parseSimulation(parser,0)
 parser.parseSimulation(parser,1)
 parser.parseSimulation(parser,2)
 parser.closeExcel()"""
 #parser.createCombinedAverage(parser)
-"""parser.filepath ="E:\\4921\\4921_A1X"
-parser.createCombinedAverage(parser)
-parser.filepath ="E:\\4921\\4921_A2X"
-parser.createCombinedAverage(parser)
+#parser.filepath ="E:\\4921\\4921_A0X"
+
 parser.closeExcel()
-"""
-"""wb = load_workbook(filename = 'output.xlsx')
-ws1 = wb["Sheet1"] # insert at the end (default)
-ws2 = wb["Sheet2"]
-ws3 = wb["Sheet3"]
-x1 = ws1.cell(row=3, column=2).value
-x2 = ws2.cell(row=3, column=2).value
-x3 = ws3.cell(row=3, column=2).value
-print(x1+x2+x3)
-fileName="E:\\4920"
-parser = StargateParser(fileName)
-print(fileName + '\\' +parser.listFiles()[0])"""
+
