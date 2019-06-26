@@ -81,7 +81,7 @@ def getFigure(ant,meanCount,index,power):
 
 if __name__ == '__main__':
     samet = WlUtility("192.168.2.254","root","Admin123*")
-    """x=samet.telnetGetWlData("wl -i wl1 phy_rssi_ant", 20, 0.1)
+    """x=samet.telnetGetWlData("wl -i wl1 phy_rssi_ant", 20, 0.1)###
     y=samet.telnetGetWlData("wl -i wl1 rate", 20, 0.1)
     for val in x:
         if "rssi[" in val:            
