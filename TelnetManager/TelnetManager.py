@@ -26,10 +26,8 @@ class WlUtility:
             self.telnet.read_until(b"Password: ")
             self.telnet.write(self.password.encode('ascii') + b"\n")
     
-    def transmitTryBCM4366(self, power_level, mean_count):
-        channel=36
-        bw=20
-        chain=0
+    def transmitTryBCM4366(self, power_level, mean_count,chain,channel,bw):
+        
         powerLevelCmd = ("wl -i wl1 txpwr1 -q -o " + str(power_level*4) + "\n").encode()
         chbw_cmd = ("wl -i wl1 chanspec " + str(channel) +"/" + str(bw) +"\n").encode()
         #print("--> START Tx for " +str(channel)+"/"+str(bw) + " - Chain: " +str(chain) + " - Powerlevel: " + str(power_level))
@@ -94,7 +92,7 @@ class WlUtility:
         time.sleep(0.5)
         while True:
             try:
-                samet=self.telnetTryBCM4366(mean_count)
+                samet=self.telnetTryBCM4366(mean_count,chain,channel,bw)
             except ValueError:
                 continue
             break
@@ -102,7 +100,7 @@ class WlUtility:
         
         mean_val = mean(samet)
         std_val = stdev(samet)
-        print("CH" +str(channel)+"/"+str(bw) + " - Chain: " +str(chain) + " - Powerlevel: " + str(power_level) + " Mean: " + str(round(mean_val,3)) + " STD: " + str(round(std_val,3)))
+        print("CH" +str(channel)+","+str(bw) + "MHz,ANT" +str(chain) + "," + str(power_level) + "dBm," + str(round(mean_val,3)) +","+ str(round((mean_val - power_level),3) ))
 
         time.sleep(1)
         self.telnet.write(b"wl -i wl1 pkteng_stop tx\n")       
@@ -299,19 +297,25 @@ class WlUtility:
             my_list.append(temp)
         return my_list
     
-    def telnetTryBCM4366(self,count):
-        chain=0
-        channel=36
-        getenv0=b"env_test getenv 1:pa5ga0\n"
-        phy_test_tssi_0 = b"wl -i wl1 phy_test_tssi 0\n"
-        phy_test_idletssi_0 = b"wl -i wl1 phy_test_idletssi 0\n"
+    def telnetTryBCM4366(self,count,chain,channel,bandwidth):
+        
+        if bandwidth==20:
+            key=""
+        elif bandwidth==40:
+            key="40"
+        elif bandwidth==80:
+            key="80"
+        getenv = ("env_test getenv 1:pa5g"+str(key)+"a" + str(chain) + "\n").encode()
+        
+        phy_test_tssi = ("wl -i wl1 phy_test_tssi " + str(chain) +"\n").encode()
+        phy_test_idletssi = ("wl -i wl1 phy_test_idletssi " + str(chain) +"\n").encode()
         
         i=0
         self.telnet.write(b"iwconfig\r\n")
-        self.telnet.write(getenv0)
+        self.telnet.write(getenv)
         while i<count:
-            self.telnet.write(phy_test_tssi_0)
-            self.telnet.write(phy_test_idletssi_0)
+            self.telnet.write(phy_test_tssi)
+            self.telnet.write(phy_test_idletssi)
             time.sleep(0.1)
             i+=1
         output = self.telnet.read_very_eager().decode('ascii').replace('\n','')
@@ -325,12 +329,12 @@ class WlUtility:
         #channel=""
         for temp in data:
             i=i+1
-            if phy_test_tssi_0.decode("utf-8")[:-1] in temp:
+            if phy_test_tssi.decode("utf-8")[:-1] in temp:
                 testtssi_0.append(data[i])
-            elif phy_test_idletssi_0.decode("utf-8")[:-1] in temp:
+            elif phy_test_idletssi.decode("utf-8")[:-1] in temp:
                 idletssi_0.append(data[i])
 
-            elif getenv0.decode("utf-8")[:-1] in temp:
+            elif getenv.decode("utf-8")[:-1] in temp:
                 pa5ga0=data[i].split(',')
         
         
@@ -349,20 +353,61 @@ class WlUtility:
                 y0 = 'null'
             time.sleep(0.01)
             i += 1 
-        if chain == 0:
-            if 36 <= channel<= 44:
-                A=(float(self.s16(int(pa5ga0[0],16)))/2**8)
-                B=(float(self.s16(int(pa5ga0[1],16)))/2**30)
-                C=(float(self.s16(int(pa5ga0[2],16)))/2**12)
-                D=(float(self.s16(int(pa5ga0[3],16)))/(2**-7))
-                i = 0
-                while i < len(adjtssi_0): 
-                    n = adjtssi_0[i]
-                    ant0.append(A+B*n**2+C*n**2/(n**2-D))
-                    i=i+1
+        
+        if 36 <= channel<= 44:
+            A=(float(self.s16(int(pa5ga0[0],16)))/2**8)
+            B=(float(self.s16(int(pa5ga0[1],16)))/2**30)
+            C=(float(self.s16(int(pa5ga0[2],16)))/2**12)
+            D=(float(self.s16(int(pa5ga0[3],16)))/(2**-7))
+            i = 0
+            while i < len(adjtssi_0): 
+                n = adjtssi_0[i]
+                ant0.append(A+B*n**2+C*n**2/(n**2-D))
+                i=i+1
+        elif 48 <= channel<= 64:
+            A=(float(self.s16(int(pa5ga0[4],16)))/2**8)
+            B=(float(self.s16(int(pa5ga0[5],16)))/2**30)
+            C=(float(self.s16(int(pa5ga0[6],16)))/2**12)
+            D=(float(self.s16(int(pa5ga0[7],16)))/(2**-7))
+            i = 0
+            while i < len(adjtssi_0): 
+                n = adjtssi_0[i]
+                ant0.append(A+B*n**2+C*n**2/(n**2-D))
+                i=i+1
+        elif 96 <= channel<= 124:
+            A=(float(self.s16(int(pa5ga0[8],16)))/2**8)
+            B=(float(self.s16(int(pa5ga0[9],16)))/2**30)
+            C=(float(self.s16(int(pa5ga0[10],16)))/2**12)
+            D=(float(self.s16(int(pa5ga0[11],16)))/(2**-7))
+            i = 0
+            while i < len(adjtssi_0): 
+                n = adjtssi_0[i]
+                ant0.append(A+B*n**2+C*n**2/(n**2-D))
+                i=i+1
+        elif 132 <= channel<= 144:
+            A=(float(self.s16(int(pa5ga0[12],16)))/2**8)
+            B=(float(self.s16(int(pa5ga0[13],16)))/2**30)
+            C=(float(self.s16(int(pa5ga0[14],16)))/2**12)
+            D=(float(self.s16(int(pa5ga0[15],16)))/(2**-7))
+            i = 0
+            while i < len(adjtssi_0): 
+                n = adjtssi_0[i]
+                ant0.append(A+B*n**2+C*n**2/(n**2-D))
+                i=i+1
+        elif 148 <= channel<= 165:
+            A=(float(self.s16(int(pa5ga0[16],16)))/2**8)
+            B=(float(self.s16(int(pa5ga0[17],16)))/2**30)
+            C=(float(self.s16(int(pa5ga0[18],16)))/2**12)
+            D=(float(self.s16(int(pa5ga0[19],16)))/(2**-7))
+            i = 0
+            while i < len(adjtssi_0): 
+                n = adjtssi_0[i]
+                ant0.append(A+B*n**2+C*n**2/(n**2-D))
+                i=i+1
+        
         antenna=[]
         antenna.append(ant0)
-        return antenna[chain]
+        return antenna[0]
     
     def telnetExit(self):
         self.telnet.write(b"exit\n")
