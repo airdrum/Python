@@ -203,4 +203,3 @@ if __name__ == '__main__':
     b1_h=hex(int(b1_s[i]) & (2**16-1))
     print ("a1 is:"+str(a1_h)+" b0 is:"+str(b0_h)+" b1 is:"+str(b1_h))
     print(hex(-1234& (2**16-1)))"""
-                                                                                                                                                                                                                                                                   
