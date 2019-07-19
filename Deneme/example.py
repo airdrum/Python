@@ -22,6 +22,7 @@ from sklearn.utils.extmath import density
 filename='C:\\Users\samet.yildiz\\OneDrive - airties.com\\PA Trimming\\4930 HW-ENG Results Analysis\\Results_evaluation.csv'
 #filename='C:\\Users\samet.yildiz\\OneDrive - airties.com\\PA Trimming\\4930 HW-ENG Results Analysis\\DUT9_results.csv'
 #filename='C:\\Users\samet.yildiz\\OneDrive - airties.com\\PA Trimming\\4930 HW-ENG Results Analysis\\results_wo_dut9.csv'
+filename='C:\\Users\samet.yildiz\\OneDrive - airties.com\\PA Trimming\\4960_PA_Trimming\\4960_pa_trimming_Sweep.csv'
 
 df = pd.read_csv(filename)
 def filter_data(df, string_key,val_key):
@@ -93,7 +94,7 @@ def plot_data_histogram(data_series,val_try):
         sns.distplot(data,color=color[i], bins=30)
         mean_val=round(np.mean(data),3)
         plt.axvline(x=mean_val, color=colorline[i], linestyle=':')  
-        ax.annotate(r'$\mu_{'+labels_short[i]+'}='+str(mean_val)+'dB$', xy=(mean_val-0.2, 1.8),
+        ax.annotate(r'$\mu_{'+labels_short[i]+'}='+str(mean_val)+'dB$', xy=(mean_val-0.2, 1.8-i*0.2),
             )
         ax.annotate(r'$\mu_{'+labels_short[i]+'}$'+ ': Mean Value of '+labels[i] , xy=(2.4, 1.5-i*0.1),
             )
@@ -108,8 +109,8 @@ def plot_data_histogram(data_series,val_try):
 
 """pa_trim_no_ant0_20MHz = df_no['Delta']
 pa_trim_yes_ant0_20MHz = df_yes['Delta']"""
-test_try= ['']
-val_try = ['']
+test_try= ['Antenna']
+val_try = ['ANT3']
 
 count =0
 test_arr={}
