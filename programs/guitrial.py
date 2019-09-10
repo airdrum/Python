@@ -156,6 +156,8 @@ print(len(delta))
 sns.kdeplot(delta,color='Red', shade=True, label="ANT0")
 sns.distplot(delta,color='Red', bins=30)
 
+plt.figure()
+plt.plot(delta)
 plt.show()
 
 
