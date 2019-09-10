@@ -5,10 +5,54 @@ Created on 9 Eyl 2019
 '''
 import PySimpleGUI as sg
 from PySimpleGUI.PySimpleGUI import SELECT_MODE_MULTIPLE
-filename='C:\\Users\\samet.yildiz\\git\\Python\\programs\\TestResults.xml'
+filename='.\\TestResults.xml'
 
 import xml.etree.ElementTree as ET 
+from scipy import stats  
+import numpy as np  
+import matplotlib.pylab as plt2
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+import pandas as pd
+import seaborn as sb
+from matplotlib import pyplot as plt
+from matplotlib.ticker import PercentFormatter
+import matplotlib.ticker as ticker
+from matplotlib.pyplot import legend
+import matplotlib
+from numpy.random import randn
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 
+from scipy import stats
+from sklearn.utils.extmath import density
+
+
+
+def dataFilter(record):
+    samet = []
+    for i in range(0,len(record)):
+        mainData = []
+        expected=""
+        power=""
+        for type_tag in record[i].findall('item'):
+            title_element = []
+            
+            if(type_tag.get('title')=="ExpectedPower"):
+                expected = type_tag.get('value')
+            elif(type_tag.get('title')=="POWER"):
+                power = type_tag.get('value')
+            title_element.append(type_tag.get('title'))
+            title_element.append(type_tag.get('value'))
+            mainData.append(title_element)
+        title_element = ["Delta"]
+        x = round(float(power.replace(',','.')) - float(expected.replace(',','.')),2)  
+        title_element.append(str(x))
+        mainData.append(title_element)
+        samet.append(mainData)
+    return samet
+    
 root = ET.parse(filename).getroot()
 record = root.findall('Record')
 layout1 = []
@@ -79,34 +123,39 @@ layout3.append([sg.Submit(tooltip='Click to submit this form',button_color=('bla
 
 window_select = sg.Window('Transmit Power Data Analysis Tool', layout3, default_element_size=(40, 20), grab_anywhere=False)
 event2, values_filtered = window_select.Read()
-
-print("values:",values)
-print("values2:",values_filtered)
+selection_criteria = values[0]
+print("values         : ",selection_criteria)
+print("values_filtered: ",values_filtered)
 value_to_filter = []
 for i in values_filtered:
     print(values_filtered[i])
-print(values_filtered[i].count("MCS8NSS1"))
 
-for i in range(0,len(record)):
-    print(record[i])
-    title_element = []
-    value_element = []
-    for type_tag in record[i].findall('item'):
-        title_element.append(type_tag.get('title'))
-        value_element.append(type_tag.get('value'))
-    print("Title_element:",title_element)
-    print("value_element:",value_element)
-    print("values_filtered:",values_filtered)
-    
-    for inval in values_filtered:
-        for ink in value_element:
-            print(values_filtered[inval].count(ink))
-    
-    ind = title_element.index("POWER")
-    if(values_filtered[i].count(value)):
-        value_to_filter.append(type_tag.get('value'))
+original_data = dataFilter(record)
+
+delta = []
+for element in original_data:
+    criteria = []
+    valuesCri = []
+    for inner in element:
+        criteria.append(inner[0])
+        valuesCri.append(inner[1])
+    count  = 0
+    exist = 1
+    for sel in selection_criteria:
+        index = criteria.index(sel)
+        exist = exist and values_filtered[count].count(valuesCri[index])
+        count+=1
+    if(exist):
+        ind = criteria.index("Delta")
+        delta.append(round(float(valuesCri[ind]),2))
+
+print(len(delta))
 
 
 
-#mylist = list(set(values))
-print(values[0])
+sns.kdeplot(delta,color='Red', shade=True, label="ANT0")
+sns.distplot(delta,color='Red', bins=30)
+
+plt.show()
+
+
