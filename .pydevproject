@@ -7,5 +7,6 @@
 <path>/${PROJECT_DIR_NAME}/CvsAntennaParser</path>
 <path>/${PROJECT_DIR_NAME}/Deneme</path>
 <path>/${PROJECT_DIR_NAME}/BGW210_TelnetManager</path>
+<path>/${PROJECT_DIR_NAME}/programs</path>
 </pydev_pathproperty>
 </pydev_project>
