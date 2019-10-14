@@ -21,8 +21,6 @@ from matplotlib.ticker import PercentFormatter
 import matplotlib.ticker as ticker
 from matplotlib.pyplot import legend
 import matplotlib
-from numpy.random import randn
-import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
 from scipy import stats

@@ -4,7 +4,7 @@ import sys,os
 import time
 import re 
 import datetime
-
+from re import search
 from statistics import mean , stdev
 
 
@@ -25,6 +25,75 @@ class WlUtility:
         if self.password:
             self.telnet.read_until(b"Password: ")
             self.telnet.write(self.password.encode('ascii') + b"\n")
+    
+    def captureCurPower(self, channel, radio, key):
+        chanbw="20"
+        print("################### " + str(radio) + " Channel:" +str(channel) + " 20MHz at " + key + " #################")
+        if radio=="2.4GHz":
+            r_key=0
+            set_key = ("wl -i wl0 curpower\n").encode()
+        else:
+            r_key=1
+            set_key = ("wl -i wl1 curpower\n").encode()
+        set_channel = ("set_config wireless-" + str(r_key) +" channel " + str(channel) +"\n").encode()
+        
+        if radio=="2.4GHz":
+            self.telnet.write(b"set_config wireless-0 opmode ap\n")
+            self.telnet.write(b"set_config wireless-0 chanbw 20\n")
+            self.telnet.write(set_channel)
+            time.sleep(10)
+            self.telnet.write(b"wl -i wl0 status | grep channel\n")
+            time.sleep(0.3)
+            print(self.telnet.read_very_eager().decode('ascii'))
+            self.telnet.write(set_key)
+            time.sleep(1)
+        elif radio=="5GHz":
+            self.telnet.write(b"set_config wireless-1 opmode ap\n")
+            self.telnet.write(b"set_config wireless-1 chanbw 20\n")
+            
+            self.telnet.write(set_channel)
+            time.sleep(10)
+            self.telnet.write(b"wl -i wl1 status | grep channel\n")
+            time.sleep(0.3)
+            print(self.telnet.read_very_eager().decode('ascii'))
+            
+            self.telnet.write(set_key)
+            time.sleep(1)
+            
+        output = self.telnet.read_very_eager().decode('ascii')
+        count=False
+        t=0
+        subkey = str(key)
+        linesOutput= output.splitlines()
+        i=0
+        printFlag = False
+        while i<len(linesOutput): 
+            if "Power Targets" in linesOutput[i]: 
+                print(linesOutput[i])
+                print(linesOutput[i+1])
+                printFlag=True
+
+            if printFlag and subkey in linesOutput[i]:
+                print(linesOutput[i])
+            i+=1
+                
+    def getCountryCode(self):
+        print("***********COUNTRY_CODE*************")
+        self.telnet.write(b"env_test getenv COUNTRY_CODE\n")
+        time.sleep(1)
+        output = self.telnet.read_very_eager().decode('ascii')
+        for i in output.splitlines():
+            print(i)
+        print("************************************")
+    def sendCommand(self,command):
+        set_key = (str(command) +"\n").encode()
+        self.telnet.write(set_key)
+        time.sleep(1)
+    
+    def getOutput(self):
+        output = self.telnet.read_very_eager().decode('ascii')
+        for i in output.splitlines():
+            print(i)
     
     def transmitTryBCM4366(self, power_level, mean_count,chain,channel,bw):
         
